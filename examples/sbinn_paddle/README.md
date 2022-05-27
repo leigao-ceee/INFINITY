@@ -118,6 +118,8 @@ python  plot.py
 }
 ```
 
+[deepxde](https://github.com/lululxvi/deepxde)
+
 ```
 @article{lu2021deepxde,
   author  = {Lu, Lu and Meng, Xuhui and Mao, Zhiping and Karniadakis, George Em},
