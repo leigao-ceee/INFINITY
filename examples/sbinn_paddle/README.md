@@ -4,7 +4,7 @@
 
 
 - [1. 简介]()
-- [2. 复现精度]()
+- [2. 效果展示]()
 - [3. 准备环境]()
 - [4. 开始使用]()
 - [5. LICENSE]()
@@ -18,14 +18,12 @@
 **论文:** [Systems Biology: Identifiability analysis and parameter identification via systems-biology informed neural networks](https://arxiv.org/pdf/2202.01723.pdf)
 
 **参考repo:** [https://github.com/lu-group/sbinn](https://github.com/lu-group/sbinn)
-                                        
-快速使用可参考[AIStudio](https://aistudio.baidu.com/aistudio/projectdetail/3966656?contributionType=1&shared=1)        
+                                            
 
 代码主要基于[sbinn](https://github.com/lu-group/sbinn)和[deepxde](https://github.com/lululxvi/deepxde)修改，在涉及商业应用时需谨慎使用！
 
 Code was heavily based on https://github.com/lu-group/sbinn and https://github.com/lululxvi/deepxde . Users should be careful about adopting these functions in any commercial matters.
 
-感谢百度飞桨提供的算力支持
 
 ## 2. 效果展示
 
@@ -68,9 +66,16 @@ git clone https://github.com/simonsLiang/sbinn_paddle
 # 安装GPU版本的Paddle
 pip install paddlepaddle-gpu==2.1.2
 ```
-                                            
+
 更多安装方法可以参考：[Paddle安装指南](https://www.paddlepaddle.org.cn/)
 
+
+* 安装scikit-optimize
+
+```bash
+pip install scikit-optimize
+```
+                                            
 
 ## 4. 开始使用
 
