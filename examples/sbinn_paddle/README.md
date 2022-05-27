@@ -27,35 +27,10 @@ Code was heavily based on https://github.com/lu-group/sbinn and https://github.c
 
 感谢百度飞桨提供的算力支持
 
-## 2. 复现精度
+## 2. 效果展示
 
-论文fig13复现结果：
 （蓝色实线为目标值，红色虚线为预测值）
 
-### 1. 学习率为1e-6
-epoch=400000:
-<div>
-    <img src="./figs/Ip40e.png" width=300">
-    <img src="./figs/Ii40e.png" width=300">
-</div>     
-<div>
-    <img src="./figs/G40e.png" width=300">
-    <img src="./figs/IG40e.png" width=300">
-</div> 
-
-<div>
-</div> 
-epoch=600000:
-<div>
-    <img src="./figs/Ip60e.png" width=300">
-    <img src="./figs/Ii60e.png" width=300">
-</div>     
-<div>
-    <img src="./figs/G60e.png" width=300">
-    <img src="./figs/IG60e.png" width=300">
-</div> 
-
-### 2. 学习率为5e-8
 epoch=400000:
 <div>
     <img src="./figs/Ip40e2.png" width=300">
@@ -77,8 +52,6 @@ epoch=600000:
     <img src="./figs/G60e2.png" width=300">
     <img src="./figs/IG60e2.png" width=300">
 </div> 
-
-训练日志,以及生成的variable.csv,vallist.csv可在[BaiduYun](https://pan.baidu.com/s/10XljlwKKUdJXrQ7VmL7gTA?pwd=vfnr)下载
 
 ## 3. 准备环境
 
@@ -134,3 +107,24 @@ python  plot.py
 
 ## 6. 参考链接与文献
 [Systems Biology: Identifiability analysis and parameter identification via systems-biology informed neural networks](https://arxiv.org/pdf/2202.01723.pdf)
+
+```
+@article{daneker2022systems,
+  title={Systems Biology: Identifiability analysis and parameter identification via systems-biology informed neural networks}, 
+  author={Mitchell Daneker and Zhen Zhang and George Em Karniadakis and Lu Lu},
+  year={2022},
+  eprint={2202.01723},
+  archivePrefix={arXiv}
+}
+```
+
+@article{lu2021deepxde,
+  author  = {Lu, Lu and Meng, Xuhui and Mao, Zhiping and Karniadakis, George Em},
+  title   = {{DeepXDE}: A deep learning library for solving differential equations},
+  journal = {SIAM Review},
+  volume  = {63},
+  number  = {1},
+  pages   = {208-228},
+  year    = {2021},
+  doi     = {10.1137/19M1274067}
+}
