@@ -30,7 +30,7 @@
     <img src="./figs/p10.png" width=250">
 </div>
 
-### 图2 能量耗散率
+### 能量耗散率
 
 <div>
     <img src="./figs/dp.png" width=400">
