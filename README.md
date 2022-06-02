@@ -6,6 +6,8 @@ INFINITY aims to build a landscape to unite creative and thoughtful people toget
 - 【PaddlePaddle Hackathon 2】科学计算方向任务合集https://github.com/X4Science/INFINITY/issues/2
 - 【PaddlePaddle Hackathon 2】科学计算方向直播课 https://m.bilibili.com/video/BV1W3411p7A1
 - 【PaddlePaddle 论文复现赛】https://github.com/PaddlePaddle/Paddle/issues/41482
+- 【曙光先导杯】https://cas-pra.sugon.com/detail.html?tournament_id=15
+- 【中国软件开源创新大赛：开源任务挑战赛(顶会论文复现赛)】https://aistudio.baidu.com/aistudio/competition/detail/249/0/introduction
 
 
 ## Architecture
