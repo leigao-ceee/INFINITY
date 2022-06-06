@@ -9,7 +9,7 @@ PaddleMD参考学习自[TorchMD](https://github.com/torchmd/torchmd)
 
 ## 许可
 
-目前项目使用BSD授权，未来可能会进行相应的改动。
+项目使用Apache-2.0 license许可
 
 项目中使用了Moleculekit等其它软件，请遵守相关许可制度。
 we use several file format readers that are taken from Moleculekit which has a free open source non-for-profit, research license. This is mainly in torchmd/run.py. Moleculekit is installed automatically being in the requirement file. Check out Moleculekit here: https://github.com/Acellera/moleculekit
