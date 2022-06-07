@@ -47,7 +47,7 @@ conda install openmm -c conda-forge
 到github.com查找相应的软件包源码，git clone下载后， 编译安装。具体步骤略。
 
 ### 5 问题解析
-若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2会读配置文件报错，1.3.0枚问题，另外0.24.2等老版本也没有问题。
+若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2会读配置文件报错，1.3.0没问题，另外0.24.2等老版本也没有问题。
 
 ## 例子
 在当前目录有 `tutorial.ipynb` ，可以用notebook动态调试的方式使用PaddleMD。
