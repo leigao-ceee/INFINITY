@@ -46,7 +46,8 @@ conda install openmm -c conda-forge
 比如AIStudio平台，无法直接只用conda安装软件，可以采用源码安装方式：
 到github.com查找相应的软件包源码，git clone下载后， 编译安装。具体步骤略。
 
-
+### 5 问题解析
+若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2会读配置文件报错，1.3.0枚问题，另外0.24.2等老版本也没有问题。
 
 ## 例子
 在当前目录有 `tutorial.ipynb` ，可以用notebook动态调试的方式使用PaddleMD。
@@ -56,7 +57,7 @@ conda install openmm -c conda-forge
 当前项目列表
 ```
 ├── 2PaddleMD.ipynb
-├── 3集成测试.ipynb
+├── 3测试.ipynb
 ├── bak2PaddleMD1.ipynb
 ├── bin
 ├── examples
@@ -78,32 +79,35 @@ conda install openmm -c conda-forge
 ├── tests
 └── tutorial.ipynb
 ```
-### tutorial.ipynb 为例子  
-### PaddleMD.ipynb为源码统一编辑文件，可以在notebook下编辑所有核心代码，编辑后只要运行一下就写入相应文件。
-### 2PaddleMD.ipynb为动态编辑和运行文件，可以边改代码，边看效果。
+### 1、tutorial.ipynb 为例子文件  
+### 2、PaddleMD.ipynb为源码统一编辑文件，可以在notebook下编辑所有核心代码，编辑后只要运行一下就写入相应文件。
+### 3、2PaddleMD.ipynb为动态编辑和运行文件，可以边改代码，边看效果。
 注意调试完成后，需要在PaddleMD.ipynb里写入修改，以便代码一致。
-### 3测试.ipynb 为集成测试文件
+### 4、3集成测试.ipynb 为集成测试文件
 首先使用`python setup.py develop`安装paddlemd开发模式。
 
 然后就可以测试了。
-比如可以使用`python tests/test_paddlemd.py`进行集成测试，使用`./bin/paddlemd --conf tests/water/water_conf.yaml`测试水分子，使用`./bin/paddlemd --conf tests/prod_alanine_dipeptide_amber/conf.yaml`测试prod alanine dipeptide前丙氨酸二
-目前水分子和前丙氨酸二测试可以运行不报错。
-集成测试，可以测试一部分，可以看到势能和力场等数值跟openmm的较接近。但是参数更新优化那块，还有问题。
+比如可以使用`python tests/test_paddlemd.py`进行集成测试，使用`./bin/paddlemd --conf tests/water/water_conf.yaml`测试水分子，使用`./bin/paddlemd --conf tests/prod_alanine_dipeptide_amber/conf.yaml`测试prod alanine dipeptide前丙氨酸二，使用`./bin/paddlemd --conf tests/trypsin/conf.yaml`测试Trypsin胰蛋白酶。
+
+目前这三个测试都可以正常运行不报错。速度大约是torchmd的十六分之一。还有较大提升空间。
+
+集成测试，可以测试一部分，可看到势能和力场等数值跟openmm的较接近。但是后面还是会报错，大约是训练求导那块还有问题。
 
 ## 当前已经实现的功能
-1 本大框架和核心代码完成
-势能和力场基本能对齐。
+### 1 大框架和核心代码完成
+势能和力场与openmm基本能对齐。原作torchmd也是以openmm为对齐基准。
 
-2 例子tutorial.ipynb可以执行
+### 2 例子tutorial.ipynb可以执行
 
-3 水分子和prod alanine dipeptide前丙氨酸二的测试可以通过
-
+### 3 水分子、prod alanine dipeptide前丙氨酸二和Trypsin胰蛋白酶等论文提到的三个测试可以运行通过
+其中前两者使用论文原作者的分子结构文件，Trypsin胰蛋白酶没有找到原作的，由https://github.com/karlyuan 提供（表示感谢）。原作Trypsin胰蛋白酶为3248个原子，我们的为6904个原子。
 ## 当前还存在的问题
-1 集成测试无法完全通过。
+### 1 集成测试无法完全通过。
 
-2 没有找到论文中Trypsin的分子结构文件。所以没有测试Trypsin
+### 2 AI参数自动更新优化那块可能还有问题。
 
-3 参数自动更新优化那块还有问题。
+### 3 运行速度大约是torchmd的十六分之一，还有很大提升空间。
+其中有几个算子需要飞桨官方开发出来。另外整个项目的计算（代码表达式）可能还有较大的改进空间。
 
 ## 进一步说明
 本项目为参加[中国软件开源创新大赛：开源任务挑战赛(顶会论文复现赛)](https://aistudio.baidu.com/aistudio/competition/detail/249/0/introduction)的项目。
