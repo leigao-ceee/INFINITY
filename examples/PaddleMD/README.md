@@ -36,8 +36,10 @@ pip install  ase  -i https://mirror.baidu.com/pypi/simple
 
 2.3 若有软件安装不成功，比如moleculekit没有安装成功， 可以尝试使用降低软件包版本解决：`pip install "moleculekit<=0.9.14"` 或者使用conda安装甚至使用源码安装。
 
+可能会发生pip显示openmm安装成功，但使用时报错的情况，再使用conda安装一遍即可。
+
 ### 3 使用conda安装前面没有安装成功的软件包
-若使用pip无法正常安装成功，可以使用conda安装
+若使用pip无法正常安装成功，或安装后无法使用，则可以使用conda安装
 ```
 conda install moleculekit -c acellera
 conda install openmm -c conda-forge
@@ -48,9 +50,10 @@ conda install openmm -c conda-forge
 到github.com查找相应的软件包源码，git clone下载后， 编译安装。具体步骤略。
 
 ### 5 问题解析
-若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2会读配置文件报错，1.3.0没问题，另外0.24.2等老版本也没有问题。
+若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2读配置文件报错，1.3.0没问题，另外0.24.2等老版本也没有问题。请酌情降低pandas版本使用。
 
-## 例子
+
+## 分子动力学模拟的例子
 在当前目录有 `tutorial.ipynb` ，可以用notebook动态调试的方式使用PaddleMD。
 
 # 项目使用和进度
