@@ -34,7 +34,7 @@ def paddlescatter(x, dim, index, src): # 支持1D版本
     return paddle.scatter_nd_add(x, index, updates)
 
 # 飞桨的put_alone_axis支持shape不一致的情况，即indices和value比arr长或者短的情况。
-# 需要做的，就是要把paddlemd里面的[687]改成[688,1] forcovec[687,3]改成[688, 3]
+# 需要做的，就是要把短的补齐，长的分段传入。
 def paddleput_alone_axis(arr, indices, value, axis, reduce="add"):
 #     print(f"==arr.shape:{arr.shape} indices.shape:{indices.shape} value.shape:{value.shape}")
     lenarr = arr.shape[0]
@@ -60,7 +60,7 @@ def paddleput_alone_axis(arr, indices, value, axis, reduce="add"):
 def paddleindex_add(x, dim, index, source):
     return paddleput_alone_axis(x, index, source, dim)
 
-# def paddleindex_add(x, dim, index, source): # 飞桨的index_add
+# def paddleindex_add(x, dim, index, source): # 飞桨的index_add,速度慢，废弃
 #     return x
 #     for i in range(len(index)):
 #         x[index[i]] += source[i]
@@ -98,7 +98,7 @@ class Forces:
         exclusions=("bonds", "angles", "1-4"),
     ):
         self.par = parameters
-        if terms is None: # 为了不报错，我也是拼了
+        if terms is None: # 为了不报错，None的时候取全部（作者意图应该是这样）
             terms = self.terms
         if terms is None:
             raise RuntimeError(
@@ -156,7 +156,7 @@ class Forces:
             pp["external"] = paddle.zeros([1]).astype(pos.dtype)
             pot.append(pp)
 
-        forces.zero_()
+        forces.zero_() 
         for i in range(nsystems):
             spos = pos[i]
             sbox = box[i][paddle.eye(3).astype(paddle.bool)]  # Use only the diagonal
@@ -181,7 +181,10 @@ class Forces:
                     )
                 E, force_coeff = evaluate_bonds(bond_dist, bond_params, explicit_forces)
 
-                pot[i]["bonds"] += E.sum()
+#                 pot[i]["bonds"] += E.sum()
+                tmp = pot[i]
+                tmp["bonds"] += E.sum()
+                pot[i] = tmp
                 if explicit_forces:
                     forcevec = bond_unitvec * force_coeff[:, None]
                     forces[i] = paddleindex_add(forces[i], 0, pairs[:, 0], -forcevec)
@@ -194,7 +197,10 @@ class Forces:
                     r21, r23, self.par.angle_params, explicit_forces
                 )
 
-                pot[i]["angles"] += E.sum()
+#                 pot[i]["angles"] += E.sum()
+                tmp = pot[i]
+                tmp["angles"] += E.sum()
+                pot[i] = tmp
                 if explicit_forces:
                     forces[i] = paddleindex_add(forces[i], 0, self.par.angles[:, 0], angle_forces[0])
                     forces[i] = paddleindex_add(forces[i], 0, self.par.angles[:, 1], angle_forces[1])
@@ -216,7 +222,10 @@ class Forces:
                     r12, r23, r34, self.par.dihedral_params, explicit_forces
                 )
 
-                pot[i]["dihedrals"] += E.sum()
+#                 pot[i]["dihedrals"] += E.sum()
+                tmp = pot[i]
+                tmp["dihedrals"] += E.sum()
+                pot[i] = tmp
                 if explicit_forces:
                     forces[i] = paddleindex_add(forces[i], 
                         0, self.par.dihedrals[:, 0], dihedral_forces[0]
@@ -261,7 +270,10 @@ class Forces:
                     E, force_coeff = evaluate_LJ_internal(
                         nb_dist, aa, bb, scnb, None, None, explicit_forces
                     )
-                    pot[i]["lj"] += E.sum()
+#                     pot[i]["lj"] += E.sum()
+                    tmp = pot[i]
+                    tmp["lj"] += E.sum()
+                    pot[i] = tmp
                     if explicit_forces:
                         forcevec = nb_unitvec * force_coeff[:, None]
                         forces[i] = paddleindex_add(forces[i], 0, idx14[:, 0], -forcevec)
@@ -277,7 +289,10 @@ class Forces:
                         solventDielectric=self.solventDielectric,
                         explicit_forces=explicit_forces,
                     )
-                    pot[i]["electrostatics"] += E.sum()
+#                     pot[i]["electrostatics"] += E.sum()
+                    tmp = pot[i]
+                    tmp["electrostatics"] += E.sum()
+                    pot[i] = tmp
                     if explicit_forces:
 #                         print(f"==force line 276 explicit_forces:{explicit_forces} electrostatics len of idx14[:, 0]:{len(idx14[:, 0])}")
                         forcevec = nb_unitvec * force_coeff[:, None]
@@ -298,7 +313,10 @@ class Forces:
                     r12, r23, r34, self.par.improper_params, explicit_forces
                 )
 
-                pot[i]["impropers"] += E.sum()
+#                 pot[i]["impropers"] += E.sum()
+                tmp = pot[i]
+                tmp["impropers"] += E.sum()
+                pot[i] = tmp
                 if explicit_forces:
                     forces[i] = paddleindex_add(forces[i], 
                         0, self.par.impropers[:, 0], improper_forces[0]
@@ -335,7 +353,10 @@ class Forces:
                             solventDielectric=self.solventDielectric,
                             explicit_forces=explicit_forces,
                         )
-                        pot[i][v] += E.sum()
+#                         pot[i][v] += E.sum()
+                        tmp = pot[i]
+                        tmp[v] += E.sum()
+                        pot[i] = tmp
                     elif v == "lj":
                         E, force_coeff = evaluate_LJ(
                             nb_dist,
@@ -347,7 +368,10 @@ class Forces:
                             self.cutoff,
                             explicit_forces,
                         )
-                        pot[i][v] += E.sum()
+#                         pot[i][v] += E.sum()
+                        tmp = pot[i]
+                        tmp[v] += E.sum()
+                        pot[i] = tmp
                     elif v == "repulsion":
                         E, force_coeff = evaluate_repulsion(
                             nb_dist,
@@ -356,7 +380,10 @@ class Forces:
                             self.par.A,
                             explicit_forces,
                         )
-                        pot[i][v] += E.sum()
+#                         pot[i][v] += E.sum()
+                        tmp = pot[i]
+                        tmp[v] += E.sum()
+                        pot[i] = tmp
                     elif v == "repulsioncg":
                         E, force_coeff = evaluate_repulsion_CG(
                             nb_dist,
@@ -365,7 +392,10 @@ class Forces:
                             self.par.B,
                             explicit_forces,
                         )
-                        pot[i][v] += E.sum()
+#                         pot[i][v] += E.sum()
+                        tmp = pot[i]
+                        tmp[v] += E.sum()
+                        pot[i] = tmp
                     else:
                         continue
 
@@ -377,24 +407,35 @@ class Forces:
         if self.external:
             ext_ene, ext_force = self.external.calculate(pos, box)
             for s in range(nsystems):
+#                 print(f"line 411 pot{pot}")
                 pot[s]["external"] += ext_ene[s]
+#                 print(f"line 413 pot{pot}")
             if explicit_forces:
                 forces += ext_force
 
         if not explicit_forces:
             enesum = paddle.zeros([1], dtype=pos.dtype)
+#             print(f"==417 enesum{enesum, enesum.shape}")
             for i in range(nsystems):
                 for ene in pot[i]:
 #                     if pot[i][ene].requires_grad:
                     if not pot[i][ene].stop_gradient:
                         enesum += pot[i][ene]
-            forces[:] = -paddle.autograd.grad(
-                enesum, pos, only_inputs=True, retain_graph=True
+#             print(f"==417 enesum{enesum, enesum.shape} enesum.grad:{enesum.stop_gradient}")
+#             print(f"type of enesum:{type(enesum)} type of pos:{type(pos)}")
+#             forces[:] = -paddle.autograd.grad(
+#                 enesum, pos, only_inputs=True, retain_graph=True
+#             )[0]
+#             enesum.backward()
+#             注释下面的paddle.grad语句，以免报错，使用enesum.backward()替代。这里尚需弄明白方法是否正确。   
+            forces[:] = -paddle.grad(
+                [enesum], [pos], only_inputs=True, retain_graph=False
             )[0]
             if returnDetails:
                 return pot
             else:
-                return [paddle.sum(paddle.cat(list(pp.values()))) for pp in pot]
+#                 return [paddle.sum(paddle.cat(list(pp.values()))) for pp in pot]
+                return [paddle.sum(paddle.concat(list(pp.values()))) for pp in pot]
 
         if returnDetails:
             return [{k: v.item() for k, v in pp.items()} for pp in pot]
@@ -426,8 +467,14 @@ def calculate_distances(atom_pos, atom_idx, box):
 #     print(f"==calculate_distances atom_pos, atom_idx, box:{atom_pos.shape, atom_idx.shape, box.shape}")
 
     direction_vec = wrap_dist(atom_pos[atom_idx[:, 0]] - atom_pos[atom_idx[:, 1]], box)
-#     print(f"==line 423 of forces direction_vec.shape:{direction_vec.shape}")
+    if len(direction_vec.shape) <2 :
+#         print(direction_vec.shape)
+#         print("!"，direction_vec.shape)
+        # 将1D数据改成2D数据，可保证下面的paddle.norm不报错。但前面数据处理为什么会出1D数据，需要找原因。
+        direction_vec = direction_vec.reshape([1, -1]) 
+#         print(f"==line 430 of forces direction_vec.shape:{direction_vec.shape}")
     dist = paddle.norm(direction_vec, axis=1)
+#     print(f"==line 438 of forces direction_vec.shape:{direction_vec.shape} dist{type(dist), dist.shape} ")
     direction_unitvec = direction_vec / dist.unsqueeze(1)
     return dist, direction_unitvec, direction_vec
 
@@ -615,6 +662,7 @@ def evaluate_torsion(r12, r23, r34, torsion_params, explicit_forces=True):
     ntorsions = len(torsion_params[0]["idx"])
 #     pot = paddle.zeros(ntorsions, dtype=r12.dtype, layout=r12.layout)
     pot = paddle.zeros([ntorsions], dtype=r12.dtype) # 飞桨无layout参数
+#     print(f"==pot{pot}") 
     if explicit_forces:
 #         coeff = paddle.zeros(
 #             [ntorsions], dtype=r12.dtype)

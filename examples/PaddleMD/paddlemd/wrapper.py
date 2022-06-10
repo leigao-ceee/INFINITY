@@ -4,6 +4,7 @@ import paddle
 #     tmp =x[0][paddle.eye(n).astype(paddle.bool)]
 #     return tmp.unsqueeze_(0)
 
+# 为了提速，没有使用该函数，而是用numpy语句实现，在反向传播方面可能有隐患。
 def paddleindexjia (x, y, xindex):
     '''
     切片+索引，使用循环来解决切片问题，然后使用中间变量，来实现按照索引赋值
@@ -63,7 +64,7 @@ class Wrapper:
 #                 pos = paddleindexjia(pos, -offset, group)
                 pos = pos.numpy()
                 offset = offset.unsqueeze(1).numpy()
-                pos[:, group] -= offset # 尝试使用numpy来处理 相关语句共4句
+                pos[:, group] -= offset # 尝试使用numpy来处理 前后相关语句共4句
                 pos = paddle.to_tensor(pos)
 
         # Move non-grouped atoms
@@ -73,7 +74,7 @@ class Wrapper:
 #             pos = paddleindexjia(pos, -offset, self.nongrouped)
             pos = pos.numpy()
             offset = offset.unsqueeze(1).numpy()
-            pos[:, self.nongrouped] -= offset # 尝试使用numpy来处理 相关语句共4句
+            pos[:, self.nongrouped] -= offset # 尝试使用numpy来处理 前后相关语句共4句
             pos = paddle.to_tensor(pos)
 
 

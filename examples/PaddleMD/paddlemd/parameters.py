@@ -31,31 +31,31 @@ class Parameters:
         self.precision_(precision)
 #         self.to_(device=None) # 为了调试步幅小，临时用None默认值代替。
  
-    def to_(self, device=None):
-        self.A = self.A 
-        self.B = self.B 
-        self.charges = self.charges 
-        self.masses = self.masses 
-        if self.bonds is not None:
-            self.bonds = self.bonds 
-            self.bond_params = self.bond_params 
-        if self.angles is not None:
-            self.angles = self.angles 
-            self.angle_params = self.angle_params 
-        if self.dihedrals is not None:
-            self.dihedrals = self.dihedrals 
-            for j in range(len(self.dihedral_params)):
-                termparams = self.dihedral_params[j]
-                termparams["idx"] = termparams["idx"] 
-                termparams["params"] = termparams["params"] 
-        if self.idx14 is not None:
-            self.idx14 = self.idx14 
-            self.nonbonded_14_params = self.nonbonded_14_params 
-        if self.impropers is not None:
-            self.impropers = self.impropers 
-            termparams = self.improper_params[0]
-            termparams["idx"] = termparams["idx"] 
-            termparams["params"] = termparams["params"] 
+#     def to_(self, device=None):
+#         self.A = self.A 
+#         self.B = self.B 
+#         self.charges = self.charges 
+#         self.masses = self.masses 
+#         if self.bonds is not None:
+#             self.bonds = self.bonds 
+#             self.bond_params = self.bond_params 
+#         if self.angles is not None:
+#             self.angles = self.angles 
+#             self.angle_params = self.angle_params 
+#         if self.dihedrals is not None:
+#             self.dihedrals = self.dihedrals 
+#             for j in range(len(self.dihedral_params)):
+#                 termparams = self.dihedral_params[j]
+#                 termparams["idx"] = termparams["idx"] 
+#                 termparams["params"] = termparams["params"] 
+#         if self.idx14 is not None:
+#             self.idx14 = self.idx14 
+#             self.nonbonded_14_params = self.nonbonded_14_params 
+#         if self.impropers is not None:
+#             self.impropers = self.impropers 
+#             termparams = self.improper_params[0]
+#             termparams["idx"] = termparams["idx"] 
+#             termparams["params"] = termparams["params"] 
 #         self.device = device
 
     def precision_(self, precision):

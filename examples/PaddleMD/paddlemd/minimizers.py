@@ -47,7 +47,8 @@ def minimize_bfgs(system, forces, fmax=0.5, steps=1000):
         stop_gradient=system.pos.stop_gradient
     )
 
-def minimize_pytorch_bfgs(system, forces, steps=1000):
+# 还未调通
+def minimize_paddle_bfgs(system, forces, steps=1000):
     if steps == 0:
         return
 
@@ -61,7 +62,7 @@ def minimize_pytorch_bfgs(system, forces, steps=1000):
         Epot = forces.compute(
             pos, system.box, system.forces, explicit_forces=False, returnDetails=False
         )
-        Etot = paddle.sum(paddle.cat(Epot))
+        Etot = paddle.sum(paddle.concat(Epot))
         grad = -system.forces.detach().numpy().astype(np.float64)[0]
         maxforce = float(paddle.max(paddle.norm(grad, axis=1)))
         print("{0:4d}   {1: 3.6f}   {2: 3.6f}".format(step[0], float(Etot), maxforce))
