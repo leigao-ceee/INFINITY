@@ -20,10 +20,9 @@ we use several file format readers that are taken from Moleculekit which has a f
 具体步骤：
 
 ### 1 安装飞桨环境
-需要使用飞桨2.3或以上版本。
 `pip install paddlepaddle-gpu`
 具体命令见paddlepaddle.org.cn[网站安装指引](https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/guides/09_hardware_support/rocm_docs/paddle_install_cn.html)
-
+需要飞桨版本>=2.3
 ### 2 安装相关软件包
 2.1 通过`pip install -r requirements.txt` 和 `pip install -r requirements_tests.txt` 进行安装。
 ```
@@ -36,10 +35,8 @@ pip install  ase  -i https://mirror.baidu.com/pypi/simple
 
 2.3 若有软件安装不成功，比如moleculekit没有安装成功， 可以尝试使用降低软件包版本解决：`pip install "moleculekit<=0.9.14"` 或者使用conda安装甚至使用源码安装。
 
-可能会发生pip显示openmm安装成功，但使用时报错的情况，再使用conda安装一遍即可。
-
 ### 3 使用conda安装前面没有安装成功的软件包
-若使用pip无法正常安装成功，或安装后无法使用，则可以使用conda安装
+若使用pip无法正常安装成功，可以使用conda安装
 ```
 conda install moleculekit -c acellera
 conda install openmm -c conda-forge
@@ -50,10 +47,11 @@ conda install openmm -c conda-forge
 到github.com查找相应的软件包源码，git clone下载后， 编译安装。具体步骤略。
 
 ### 5 问题解析
-若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2读配置文件报错，1.3.0没问题，另外0.24.2等老版本也没有问题。请酌情降低pandas版本使用。
+若遇到读配置文件（.yaml文件）pandas报错，请检查和替换版本。目前已知的是pandas1.4.2会读配置文件报错，1.3.0没问题，另外0.24.2等老版本也没有问题（但有时也会有问题）。
 
+所以碰到pandas报错，根据提示降低版本即可。`pip install "pandas<=1.3"`
 
-## 分子动力学模拟的例子
+## 例子
 在当前目录有 `tutorial.ipynb` ，可以用notebook动态调试的方式使用PaddleMD。
 
 # 项目使用和进度
@@ -118,37 +116,6 @@ conda install openmm -c conda-forge
 飞桨第六期论文复现赛128 https://aistudio.baidu.com/aistudio/competition/detail/205/0/task-definition
 issue报名地址：https://github.com/PaddlePaddle/Paddle/issues/41482
 torch代码学习：https://github.com/torchmd/torchmd
-
-
-## 项目中涉及飞桨的问题总结
-### 1 关于eye算子的问题。
-
-飞桨eye函数与Tensor进行计算好像跟torch略有不同，所以刚开始是手工写了paddleeye，里面用了固定的xx[0]维度信息，有隐患。后来为了消除隐患，重新用eye语句改写。所以这个问题算解决了。
-
-### 2 有些手工写的算子使用了for循环，需要找到并提速。
-
-自己已经尽量规避for循环，目前除了论文原作写for循环的地方，基本上没再用。后面会再查缺补漏。另外引出问题3.
-
-### 3 torchmd论文原作中使用了大量的for循环，个人感觉这样并没有把Tensor加速功能（tensor替换for循环）很好的利用起来。希望大家和飞桨专家一起，从Tensor处理的角度，看看整个paddlemd项目是否有能调整代码结构，提高程序的运行速度。
-
-### 4 index_add算子问题
-
-还是非常需要这个算子。目前是使用put_along_axis为基础写了index_add算子，飞桨的put_along_axis不支持源arr和增量value维度不一致的情况（即index长度短于或长于arr的shape[0]数值），而torch算子支持。torch算子针对不等长的，短的，直接写，长于arr的，是取了值继续往里面写。也就是index里能索引到多少就写进去多少
-
-飞桨put_along_axis要求登场，否则assert报错。目前是写了while循环以及if语句来处理不相等的情况，即短的补0，长的切分成多块之后分别输入。建议飞桨在开发这个算子的时候加上这个功能需求。
-
-
-### 5 索引切片一起用，以及花式索引等，飞桨目前不支持，据悉飞桨已经有了相关实现计划，我们也很期待早日推出！
-
-项目中有多处（同一种模式）地方使用，目前是用numpy替换的。
-
-###  6 项目中在forces.py文件430行，用到了autograd.grad
-```python
-forces[:] = -paddle.autograd.grad(
-                enesum, pos, only_inputs=True, retain_graph=True
-            )[0]
-```
-目前集成测试的时候这个地方报错。
 
 ## 帮助和注释
 未来会在github提供
