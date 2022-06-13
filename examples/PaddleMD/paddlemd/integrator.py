@@ -4,11 +4,15 @@ import paddle
 TIMEFACTOR = 48.88821
 BOLTZMAN = 0.001987191
 
-def paddlerandn_like(x) : # 添加飞桨的randn_like函数
+
+def paddlerandn_like(x):  # 添加飞桨的randn_like函数
     return paddle.randn(x.shape)
 
+
 def kinetic_energy(masses, vel):
-    Ekin = paddle.sum(0.5 * paddle.sum(vel * vel, axis=2, keepdim=True) * masses, axis=1)
+    Ekin = paddle.sum(
+        0.5 * paddle.sum(vel * vel, axis=2, keepdim=True) * masses, axis=1
+    )
     return Ekin
 
 
@@ -17,7 +21,8 @@ def maxwell_boltzmann(masses, T, replicas=1):
     velocities = []
     for i in range(replicas):
         velocities.append(
-            paddle.sqrt(T * BOLTZMAN / masses) * paddle.randn((natoms, 3)).astype(masses.dtype)
+            paddle.sqrt(T * BOLTZMAN / masses)
+            * paddle.randn((natoms, 3)).astype(masses.dtype)
         )
 
     return paddle.stack(velocities, axis=0)
@@ -38,8 +43,8 @@ def _second_VV(vel, force, mass, dt):
     vel += 0.5 * dt * accel
 
 
-def langevin(vel, gamma, coeff, dt): 
-#     csi = paddle.randn_like(vel, device=device) * coeff
+def langevin(vel, gamma, coeff, dt):
+    #     csi = paddle.randn_like(vel, device=device) * coeff
     csi = paddlerandn_like(vel) * coeff
     vel += -gamma * vel * dt + csi
 
@@ -48,11 +53,13 @@ PICOSEC2TIMEU = 1000.0 / TIMEFACTOR
 
 
 class Integrator:
-    def __init__(self, systems, forces, timestep, device=None, gamma=None, T=None): # 临时用device=None
+    def __init__(
+        self, systems, forces, timestep, device=None, gamma=None, T=None
+    ):  # 临时用device=None
         self.dt = timestep / TIMEFACTOR
         self.systems = systems
         self.forces = forces
-#         self.device = device
+        #         self.device = device
         gamma = gamma / PICOSEC2TIMEU
         self.gamma = gamma
         self.T = T

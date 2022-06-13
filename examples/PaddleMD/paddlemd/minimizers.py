@@ -43,16 +43,17 @@ def minimize_bfgs(system, forces, fmax=0.5, steps=1000):
     system.pos = paddle.to_tensor(
         res.x.reshape(1, -1, 3),
         dtype=system.pos.dtype,
-#         requires_grad=system.pos.requires_grad,
-        stop_gradient=system.pos.stop_gradient
+        #         requires_grad=system.pos.requires_grad,
+        stop_gradient=system.pos.stop_gradient,
     )
+
 
 # 还未调通
 def minimize_paddle_bfgs(system, forces, steps=1000):
     if steps == 0:
         return
 
-#     pos = system.pos.detach().requires_grad_(True)
+    #     pos = system.pos.detach().requires_grad_(True)
     pos = system.pos
     pos.stop_gradient = False
     opt = paddle.optim.LBFGS([pos], max_iter=steps, tolerance_change=1e-09)
@@ -73,6 +74,6 @@ def minimize_paddle_bfgs(system, forces, steps=1000):
     step = [0]
     opt.step(lambda: closure(step))
 
-#     system.pos[:] = pos.detach().requires_grad_(False)
+    #     system.pos[:] = pos.detach().requires_grad_(False)
     system.pos = pos
     system.pos.stop_gradient = True

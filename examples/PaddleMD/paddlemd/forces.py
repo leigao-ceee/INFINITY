@@ -5,50 +5,56 @@ from math import pi
 
 import paddle
 import math
+
 # def paddleatan2(input, other):
 #     atan = paddle.atan(input/other)
 #     atan[1] = atan[1] + pi
 #     atan[2] = atan[2] + pi
 #     return atan
 
-def paddlescatter(x, dim, index, src): # 支持1D版本
-    
+
+def paddlescatter(x, dim, index, src):  # 支持1D版本
+
     updates = src
-    if len(index.shape) == 1 :
-#         for i in index:
-#             x[i] += updates[i]
+    if len(index.shape) == 1:
+        #         for i in index:
+        #             x[i] += updates[i]
         for i in range(len(index)):
             x[index[i]] += updates[i]
         return x
-                                
+
     i, j = index.shape
-    grid_x , grid_y = paddle.meshgrid(paddle.arange(i), paddle.arange(j))
-    if dim == 0 :
+    grid_x, grid_y = paddle.meshgrid(paddle.arange(i), paddle.arange(j))
+    if dim == 0:
         index = paddle.stack([index.flatten(), grid_y.flatten()], axis=1)
     elif dim == 1:
         index = paddle.stack([grid_x.flatten(), index.flatten()], axis=1)
-        
+
     # PaddlePaddle updates 的 shape 大小必须与 index 对应
     updates_index = paddle.stack([grid_x.flatten(), grid_y.flatten()], axis=1)
     updates = paddle.gather_nd(updates, index=updates_index)
     return paddle.scatter_nd_add(x, index, updates)
 
+
 # 飞桨的put_alone_axis支持shape不一致的情况，即indices和value比arr长或者短的情况。
 # 需要做的，就是要把短的补齐，长的分段传入。
 def paddleput_alone_axis(arr, indices, value, axis, reduce="add"):
-#     print(f"==arr.shape:{arr.shape} indices.shape:{indices.shape} value.shape:{value.shape}")
+    #     print(f"==arr.shape:{arr.shape} indices.shape:{indices.shape} value.shape:{value.shape}")
     lenarr = arr.shape[0]
     lenindices = indices.shape[0]
     while lenarr < lenindices:
-        arr = paddle.put_along_axis(arr, indices[:lenarr].reshape([-1, 1]), \
-            value[:lenarr], axis, reduce=reduce)
+        arr = paddle.put_along_axis(
+            arr, indices[:lenarr].reshape([-1, 1]), value[:lenarr], axis, reduce=reduce
+        )
         indices = indices[lenarr:]
         value = value[lenarr:]
         lenarr = arr.shape[0]
         lenindices = indices.shape[0]
     xs = lenarr - lenindices
     if xs >= 1:
-        newindices = paddle.concat([indices, paddle.zeros([xs], dtype=paddle.int64)]).reshape([-1, 1])
+        newindices = paddle.concat(
+            [indices, paddle.zeros([xs], dtype=paddle.int64)]
+        ).reshape([-1, 1])
         newvalue = paddle.concat([value, paddle.zeros([xs, value.shape[-1]])])
     else:
         newindices = indices.reshape([-1, 1])
@@ -56,15 +62,18 @@ def paddleput_alone_axis(arr, indices, value, axis, reduce="add"):
     out = paddle.put_along_axis(arr, newindices, newvalue, axis, reduce=reduce)
     return out
 
+
 # 为了跟程序里的参数序列对齐，尽量不修改代码，写paddleindex_add
 def paddleindex_add(x, dim, index, source):
     return paddleput_alone_axis(x, index, source, dim)
+
 
 # def paddleindex_add(x, dim, index, source): # 飞桨的index_add,速度慢，废弃
 #     return x
 #     for i in range(len(index)):
 #         x[index[i]] += source[i]
 #     return x
+
 
 class Forces:
     """
@@ -98,7 +107,7 @@ class Forces:
         exclusions=("bonds", "angles", "1-4"),
     ):
         self.par = parameters
-        if terms is None: # 为了不报错，None的时候取全部（作者意图应该是这样）
+        if terms is None:  # 为了不报错，None的时候取全部（作者意图应该是这样）
             terms = self.terms
         if terms is None:
             raise RuntimeError(
@@ -118,8 +127,7 @@ class Forces:
         self.natoms = len(parameters.masses)
         self.require_distances = any(f in self.nonbonded for f in self.energies)
         self.ava_idx = (
-            self._make_indeces(
-                self.natoms, parameters.get_exclusions(exclusions))
+            self._make_indeces(self.natoms, parameters.get_exclusions(exclusions))
             if self.require_distances
             else None
         )
@@ -137,8 +145,8 @@ class Forces:
         return indexedarrays
 
     def compute(self, pos, box, forces, returnDetails=False, explicit_forces=True):
-#         if not explicit_forces and not pos.requires_grad:
-        if not explicit_forces and  pos.stop_gradient:
+        #         if not explicit_forces and not pos.requires_grad:
+        if not explicit_forces and pos.stop_gradient:
             raise RuntimeError(
                 "The positions passed don't require gradients. Please use pos.stop_gradient=False pos.detach().requires_grad_(True) before passing."
             )
@@ -149,19 +157,16 @@ class Forces:
 
         pot = []
         for i in range(nsystems):
-            pp = {
-                v: paddle.zeros([1]).astype(pos.dtype)
-                for v in self.energies
-            }
+            pp = {v: paddle.zeros([1]).astype(pos.dtype) for v in self.energies}
             pp["external"] = paddle.zeros([1]).astype(pos.dtype)
             pot.append(pp)
 
-        forces.zero_() 
+        forces.zero_()
         for i in range(nsystems):
             spos = pos[i]
             sbox = box[i][paddle.eye(3).astype(paddle.bool)]  # Use only the diagonal
 
-#             print(f"sbos, box shape {sbox.shape, box.shape}")
+            #             print(f"sbos, box shape {sbox.shape, box.shape}")
             # Bonded terms
             # TODO: We are for sure doing duplicate distance calculations here!
             if "bonds" in self.energies and self.par.bonds is not None:
@@ -181,7 +186,7 @@ class Forces:
                     )
                 E, force_coeff = evaluate_bonds(bond_dist, bond_params, explicit_forces)
 
-#                 pot[i]["bonds"] += E.sum()
+                #                 pot[i]["bonds"] += E.sum()
                 tmp = pot[i]
                 tmp["bonds"] += E.sum()
                 pot[i] = tmp
@@ -197,47 +202,47 @@ class Forces:
                     r21, r23, self.par.angle_params, explicit_forces
                 )
 
-#                 pot[i]["angles"] += E.sum()
+                #                 pot[i]["angles"] += E.sum()
                 tmp = pot[i]
                 tmp["angles"] += E.sum()
                 pot[i] = tmp
                 if explicit_forces:
-                    forces[i] = paddleindex_add(forces[i], 0, self.par.angles[:, 0], angle_forces[0])
-                    forces[i] = paddleindex_add(forces[i], 0, self.par.angles[:, 1], angle_forces[1])
-                    forces[i] = paddleindex_add(forces[i], 0, self.par.angles[:, 2], angle_forces[2])
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.angles[:, 0], angle_forces[0]
+                    )
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.angles[:, 1], angle_forces[1]
+                    )
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.angles[:, 2], angle_forces[2]
+                    )
 
             if "dihedrals" in self.energies and self.par.dihedrals is not None:
-#                 print(f"== spos, sbox {spos, sbox} self.par.dihedrals {self.par.dihedrals}")
-#                 print(f"==_, _, r12 = calculate_distances {spos, self.par.dihedrals[:, 0:2], sbox}")
-                _, _, r12 = calculate_distances(
-                    spos, self.par.dihedrals[:, 0:2], sbox
-                )
-                _, _, r23 = calculate_distances(
-                    spos, self.par.dihedrals[:, 1:3], sbox
-                )
-                _, _, r34 = calculate_distances(
-                    spos, self.par.dihedrals[:, 2:4], sbox
-                )
+                #                 print(f"== spos, sbox {spos, sbox} self.par.dihedrals {self.par.dihedrals}")
+                #                 print(f"==_, _, r12 = calculate_distances {spos, self.par.dihedrals[:, 0:2], sbox}")
+                _, _, r12 = calculate_distances(spos, self.par.dihedrals[:, 0:2], sbox)
+                _, _, r23 = calculate_distances(spos, self.par.dihedrals[:, 1:3], sbox)
+                _, _, r34 = calculate_distances(spos, self.par.dihedrals[:, 2:4], sbox)
                 E, dihedral_forces = evaluate_torsion(
                     r12, r23, r34, self.par.dihedral_params, explicit_forces
                 )
 
-#                 pot[i]["dihedrals"] += E.sum()
+                #                 pot[i]["dihedrals"] += E.sum()
                 tmp = pot[i]
                 tmp["dihedrals"] += E.sum()
                 pot[i] = tmp
                 if explicit_forces:
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.dihedrals[:, 0], dihedral_forces[0]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.dihedrals[:, 0], dihedral_forces[0]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.dihedrals[:, 1], dihedral_forces[1]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.dihedrals[:, 1], dihedral_forces[1]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.dihedrals[:, 2], dihedral_forces[2]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.dihedrals[:, 2], dihedral_forces[2]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.dihedrals[:, 3], dihedral_forces[3]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.dihedrals[:, 3], dihedral_forces[3]
                     )
 
             if "1-4" in self.energies and self.par.idx14 is not None:
@@ -270,13 +275,15 @@ class Forces:
                     E, force_coeff = evaluate_LJ_internal(
                         nb_dist, aa, bb, scnb, None, None, explicit_forces
                     )
-#                     pot[i]["lj"] += E.sum()
+                    #                     pot[i]["lj"] += E.sum()
                     tmp = pot[i]
                     tmp["lj"] += E.sum()
                     pot[i] = tmp
                     if explicit_forces:
                         forcevec = nb_unitvec * force_coeff[:, None]
-                        forces[i] = paddleindex_add(forces[i], 0, idx14[:, 0], -forcevec)
+                        forces[i] = paddleindex_add(
+                            forces[i], 0, idx14[:, 0], -forcevec
+                        )
                         forces[i] = paddleindex_add(forces[i], 0, idx14[:, 1], forcevec)
                 if "electrostatics" in self.energies:
                     E, force_coeff = evaluate_electrostatics(
@@ -289,46 +296,42 @@ class Forces:
                         solventDielectric=self.solventDielectric,
                         explicit_forces=explicit_forces,
                     )
-#                     pot[i]["electrostatics"] += E.sum()
+                    #                     pot[i]["electrostatics"] += E.sum()
                     tmp = pot[i]
                     tmp["electrostatics"] += E.sum()
                     pot[i] = tmp
                     if explicit_forces:
-#                         print(f"==force line 276 explicit_forces:{explicit_forces} electrostatics len of idx14[:, 0]:{len(idx14[:, 0])}")
+                        #                         print(f"==force line 276 explicit_forces:{explicit_forces} electrostatics len of idx14[:, 0]:{len(idx14[:, 0])}")
                         forcevec = nb_unitvec * force_coeff[:, None]
-                        forces[i] = paddleindex_add(forces[i], 0, idx14[:, 0], -forcevec)
+                        forces[i] = paddleindex_add(
+                            forces[i], 0, idx14[:, 0], -forcevec
+                        )
                         forces[i] = paddleindex_add(forces[i], 0, idx14[:, 1], forcevec)
 
             if "impropers" in self.energies and self.par.impropers is not None:
-                _, _, r12 = calculate_distances(
-                    spos, self.par.impropers[:, 0:2], sbox
-                )
-                _, _, r23 = calculate_distances(
-                    spos, self.par.impropers[:, 1:3], sbox
-                )
-                _, _, r34 = calculate_distances(
-                    spos, self.par.impropers[:, 2:4], sbox
-                )
+                _, _, r12 = calculate_distances(spos, self.par.impropers[:, 0:2], sbox)
+                _, _, r23 = calculate_distances(spos, self.par.impropers[:, 1:3], sbox)
+                _, _, r34 = calculate_distances(spos, self.par.impropers[:, 2:4], sbox)
                 E, improper_forces = evaluate_torsion(
                     r12, r23, r34, self.par.improper_params, explicit_forces
                 )
 
-#                 pot[i]["impropers"] += E.sum()
+                #                 pot[i]["impropers"] += E.sum()
                 tmp = pot[i]
                 tmp["impropers"] += E.sum()
                 pot[i] = tmp
                 if explicit_forces:
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.impropers[:, 0], improper_forces[0]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.impropers[:, 0], improper_forces[0]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.impropers[:, 1], improper_forces[1]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.impropers[:, 1], improper_forces[1]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.impropers[:, 2], improper_forces[2]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.impropers[:, 2], improper_forces[2]
                     )
-                    forces[i] = paddleindex_add(forces[i], 
-                        0, self.par.impropers[:, 3], improper_forces[3]
+                    forces[i] = paddleindex_add(
+                        forces[i], 0, self.par.impropers[:, 3], improper_forces[3]
                     )
 
             # Non-bonded terms
@@ -353,7 +356,7 @@ class Forces:
                             solventDielectric=self.solventDielectric,
                             explicit_forces=explicit_forces,
                         )
-#                         pot[i][v] += E.sum()
+                        #                         pot[i][v] += E.sum()
                         tmp = pot[i]
                         tmp[v] += E.sum()
                         pot[i] = tmp
@@ -368,7 +371,7 @@ class Forces:
                             self.cutoff,
                             explicit_forces,
                         )
-#                         pot[i][v] += E.sum()
+                        #                         pot[i][v] += E.sum()
                         tmp = pot[i]
                         tmp[v] += E.sum()
                         pot[i] = tmp
@@ -380,7 +383,7 @@ class Forces:
                             self.par.A,
                             explicit_forces,
                         )
-#                         pot[i][v] += E.sum()
+                        #                         pot[i][v] += E.sum()
                         tmp = pot[i]
                         tmp[v] += E.sum()
                         pot[i] = tmp
@@ -392,7 +395,7 @@ class Forces:
                             self.par.B,
                             explicit_forces,
                         )
-#                         pot[i][v] += E.sum()
+                        #                         pot[i][v] += E.sum()
                         tmp = pot[i]
                         tmp[v] += E.sum()
                         pot[i] = tmp
@@ -401,40 +404,44 @@ class Forces:
 
                     if explicit_forces:
                         forcevec = nb_unitvec * force_coeff[:, None]
-                        forces[i] = paddleindex_add(forces[i], 0, ava_idx[:, 0], -forcevec)
-                        forces[i] = paddleindex_add(forces[i], 0, ava_idx[:, 1], forcevec)
+                        forces[i] = paddleindex_add(
+                            forces[i], 0, ava_idx[:, 0], -forcevec
+                        )
+                        forces[i] = paddleindex_add(
+                            forces[i], 0, ava_idx[:, 1], forcevec
+                        )
 
         if self.external:
             ext_ene, ext_force = self.external.calculate(pos, box)
             for s in range(nsystems):
-#                 print(f"line 411 pot{pot}")
+                #                 print(f"line 411 pot{pot}")
                 pot[s]["external"] += ext_ene[s]
-#                 print(f"line 413 pot{pot}")
+            #                 print(f"line 413 pot{pot}")
             if explicit_forces:
                 forces += ext_force
 
         if not explicit_forces:
             enesum = paddle.zeros([1], dtype=pos.dtype)
-#             print(f"==417 enesum{enesum, enesum.shape}")
+            #             print(f"==417 enesum{enesum, enesum.shape}")
             for i in range(nsystems):
                 for ene in pot[i]:
-#                     if pot[i][ene].requires_grad:
+                    #                     if pot[i][ene].requires_grad:
                     if not pot[i][ene].stop_gradient:
                         enesum += pot[i][ene]
-#             print(f"==417 enesum{enesum, enesum.shape} enesum.grad:{enesum.stop_gradient}")
-#             print(f"type of enesum:{type(enesum)} type of pos:{type(pos)}")
-#             forces[:] = -paddle.autograd.grad(
-#                 enesum, pos, only_inputs=True, retain_graph=True
-#             )[0]
-#             enesum.backward()
-#             注释下面的paddle.grad语句，以免报错，使用enesum.backward()替代。这里尚需弄明白方法是否正确。   
+            #             print(f"==417 enesum{enesum, enesum.shape} enesum.grad:{enesum.stop_gradient}")
+            #             print(f"type of enesum:{type(enesum)} type of pos:{type(pos)}")
+            #             forces[:] = -paddle.autograd.grad(
+            #                 enesum, pos, only_inputs=True, retain_graph=True
+            #             )[0]
+            #             enesum.backward()
+            #             注释下面的paddle.grad语句，以免报错，使用enesum.backward()替代。这里尚需弄明白方法是否正确。
             forces[:] = -paddle.grad(
                 [enesum], [pos], only_inputs=True, retain_graph=False
             )[0]
             if returnDetails:
                 return pot
             else:
-#                 return [paddle.sum(paddle.cat(list(pp.values()))) for pp in pot]
+                #                 return [paddle.sum(paddle.cat(list(pp.values()))) for pp in pot]
                 return [paddle.sum(paddle.concat(list(pp.values()))) for pp in pot]
 
         if returnDetails:
@@ -450,7 +457,7 @@ class Forces:
             fullmat[excludepairs[:, 1], excludepairs[:, 0]] = False
         fullmat = np.triu(fullmat, +1)
         allvsall_indeces = np.vstack(np.where(fullmat)).T
-        ava_idx = paddle.to_tensor(allvsall_indeces) 
+        ava_idx = paddle.to_tensor(allvsall_indeces)
         return ava_idx
 
 
@@ -463,24 +470,24 @@ def wrap_dist(dist, box):
 
 
 def calculate_distances(atom_pos, atom_idx, box):
-#     print(f"==calculate_distances {atom_pos, atom_idx, box}")
-#     print(f"==calculate_distances atom_pos, atom_idx, box:{atom_pos.shape, atom_idx.shape, box.shape}")
+    #     print(f"==calculate_distances {atom_pos, atom_idx, box}")
+    #     print(f"==calculate_distances atom_pos, atom_idx, box:{atom_pos.shape, atom_idx.shape, box.shape}")
 
     direction_vec = wrap_dist(atom_pos[atom_idx[:, 0]] - atom_pos[atom_idx[:, 1]], box)
-    if len(direction_vec.shape) <2 :
-#         print(direction_vec.shape)
-#         print("!"，direction_vec.shape)
+    if len(direction_vec.shape) < 2:
+        #         print(direction_vec.shape)
+        #         print("!"，direction_vec.shape)
         # 将1D数据改成2D数据，可保证下面的paddle.norm不报错。但前面数据处理为什么会出1D数据，需要找原因。
-        direction_vec = direction_vec.reshape([1, -1]) 
-#         print(f"==line 430 of forces direction_vec.shape:{direction_vec.shape}")
+        direction_vec = direction_vec.reshape([1, -1])
+    #         print(f"==line 430 of forces direction_vec.shape:{direction_vec.shape}")
     dist = paddle.norm(direction_vec, axis=1)
-#     print(f"==line 438 of forces direction_vec.shape:{direction_vec.shape} dist{type(dist), dist.shape} ")
+    #     print(f"==line 438 of forces direction_vec.shape:{direction_vec.shape} dist{type(dist), dist.shape} ")
     direction_unitvec = direction_vec / dist.unsqueeze(1)
     return dist, direction_unitvec, direction_vec
 
 
 ELEC_FACTOR = 1 / (4 * const.pi * const.epsilon_0)  # Coulomb's constant
-ELEC_FACTOR *= const.elementary_charge ** 2  # Convert elementary charges to Coulombs
+ELEC_FACTOR *= const.elementary_charge**2  # Convert elementary charges to Coulombs
 ELEC_FACTOR /= const.angstrom  # Convert Angstroms to meters
 ELEC_FACTOR *= const.Avogadro / (const.kilo * const.calorie)  # Convert J to kcal/mol
 
@@ -500,7 +507,7 @@ def evaluate_LJ_internal(
     force = None
 
     rinv1 = 1 / dist
-    rinv6 = rinv1 ** 6
+    rinv6 = rinv1**6
     rinv12 = rinv6 * rinv6
 
     pot = ((aa * rinv12) - (bb * rinv6)) / scale
@@ -531,7 +538,7 @@ def evaluate_repulsion(
     aa = A[atomtype_indices[:, 0], atomtype_indices[:, 1]]
 
     rinv1 = 1 / dist
-    rinv6 = rinv1 ** 6
+    rinv6 = rinv1**6
     rinv12 = rinv6 * rinv6
 
     pot = (aa * rinv12) / scale
@@ -549,7 +556,7 @@ def evaluate_repulsion_CG(
     coef = B[atomtype_indices[:, 0], atomtype_indices[:, 1]]
 
     rinv1 = 1 / dist
-    rinv6 = rinv1 ** 6
+    rinv6 = rinv1**6
 
     pot = (coef * rinv6) / scale
     if explicit_forces:
@@ -573,7 +580,7 @@ def evaluate_electrostatics(
         # Ilario G. Tironi, René Sperb, Paul E. Smith, and Wilfred F. van Gunsteren. A generalized reaction field method
         # for molecular dynamics simulations. Journal of Chemical Physics, 102(13):5451–5459, 1995.
         denom = (2 * solventDielectric) + 1
-        krf = (1 / cutoff ** 3) * (solventDielectric - 1) / denom
+        krf = (1 / cutoff**3) * (solventDielectric - 1) / denom
         crf = (1 / cutoff) * (3 * solventDielectric) / denom
         common = (
             ELEC_FACTOR
@@ -581,7 +588,7 @@ def evaluate_electrostatics(
             * atom_charges[pair_indeces[:, 1]]
             / scale
         )
-        dist2 = dist ** 2
+        dist2 = dist**2
         pot = common * ((1 / dist) + krf * dist2 - crf)
         if explicit_forces:
             force = common * (2 * krf * dist - 1 / dist2)
@@ -604,7 +611,7 @@ def evaluate_bonds(dist, bond_params, explicit_forces=True):
     k0 = bond_params[:, 0]
     d0 = bond_params[:, 1]
     x = dist - d0
-    pot = k0 * (x ** 2)
+    pot = k0 * (x**2)
     if explicit_forces:
         force = 2 * k0 * x
     return pot, force
@@ -660,12 +667,12 @@ def evaluate_torsion(r12, r23, r34, torsion_params, explicit_forces=True):
     phi = -paddle.atan2(sinPhi, cosPhi)
 
     ntorsions = len(torsion_params[0]["idx"])
-#     pot = paddle.zeros(ntorsions, dtype=r12.dtype, layout=r12.layout)
-    pot = paddle.zeros([ntorsions], dtype=r12.dtype) # 飞桨无layout参数
-#     print(f"==pot{pot}") 
+    #     pot = paddle.zeros(ntorsions, dtype=r12.dtype, layout=r12.layout)
+    pot = paddle.zeros([ntorsions], dtype=r12.dtype)  # 飞桨无layout参数
+    #     print(f"==pot{pot}")
     if explicit_forces:
-#         coeff = paddle.zeros(
-#             [ntorsions], dtype=r12.dtype)
+        #         coeff = paddle.zeros(
+        #             [ntorsions], dtype=r12.dtype)
         coeff = paddle.zeros([ntorsions], dtype=r12.dtype)
     for i in range(0, len(torsion_params)):
         idx = torsion_params[i]["idx"]
@@ -675,22 +682,24 @@ def evaluate_torsion(r12, r23, r34, torsion_params, explicit_forces=True):
 
         if paddle.all(per > 0):  # AMBER torsions
             angleDiff = per * phi[idx] - phi0
-#             pot.scatter_add_(0, idx, k0 * (1 + paddle.cos(angleDiff)))
-#             print(f"==src {(k0 * (1 + paddle.cos(angleDiff))).shape}")
-#             print(f"==x=pot, , index=idx{pot.shape, idx.shape} src {(k0 * (1 + paddle.cos(angleDiff))).shape}")
-            pot = paddlescatter(x=pot, dim=0, index=idx, src=k0 * (1 + paddle.cos(angleDiff))) # x, dim, index, src
-#             print(f"==after pot.shape{pot.shape}")
+            #             pot.scatter_add_(0, idx, k0 * (1 + paddle.cos(angleDiff)))
+            #             print(f"==src {(k0 * (1 + paddle.cos(angleDiff))).shape}")
+            #             print(f"==x=pot, , index=idx{pot.shape, idx.shape} src {(k0 * (1 + paddle.cos(angleDiff))).shape}")
+            pot = paddlescatter(
+                x=pot, dim=0, index=idx, src=k0 * (1 + paddle.cos(angleDiff))
+            )  # x, dim, index, src
+            #             print(f"==after pot.shape{pot.shape}")
             if explicit_forces:
-#                 coeff.scatter_add_(0, idx, -per * k0 * paddle.sin(angleDiff))
+                #                 coeff.scatter_add_(0, idx, -per * k0 * paddle.sin(angleDiff))
                 coeff = paddlescatter(coeff, 0, idx, -per * k0 * paddle.sin(angleDiff))
         else:  # CHARMM torsions
             angleDiff = phi[idx] - phi0
             angleDiff[angleDiff < -pi] = angleDiff[angleDiff < -pi] + 2 * pi
             angleDiff[angleDiff > pi] = angleDiff[angleDiff > pi] - 2 * pi
-#             pot.scatter_add_(0, idx, k0 * angleDiff ** 2)
-            pot = paddlescatter(pot, 0, idx, k0 * angleDiff ** 2)
+            #             pot.scatter_add_(0, idx, k0 * angleDiff ** 2)
+            pot = paddlescatter(pot, 0, idx, k0 * angleDiff**2)
             if explicit_forces:
-#                 coeff.scatter_add_(0, idx, 2 * k0 * angleDiff)
+                #                 coeff.scatter_add_(0, idx, 2 * k0 * angleDiff)
                 coeff = paddlescatter(coeff, 0, idx, 2 * k0 * angleDiff)
 
     # coeff.unsqueeze_(1)
@@ -699,11 +708,11 @@ def evaluate_torsion(r12, r23, r34, torsion_params, explicit_forces=True):
     if explicit_forces:
         # Taken from OpenMM
         normDelta2 = paddle.norm(r23, axis=1)
-        norm2Delta2 = normDelta2 ** 2
-        forceFactor0 = (-coeff * normDelta2) / (normA ** 2)
+        norm2Delta2 = normDelta2**2
+        forceFactor0 = (-coeff * normDelta2) / (normA**2)
         forceFactor1 = paddle.sum(r12 * r23, axis=1) / norm2Delta2
         forceFactor2 = paddle.sum(r34 * r23, axis=1) / norm2Delta2
-        forceFactor3 = (coeff * normDelta2) / (normB ** 2)
+        forceFactor3 = (coeff * normDelta2) / (normB**2)
 
         force0vec = forceFactor0.unsqueeze(1) * crossA
         force3vec = forceFactor3.unsqueeze(1) * crossB

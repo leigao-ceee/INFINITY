@@ -2,10 +2,13 @@ import paddle
 
 # 写飞桨版本的笛卡尔直积函数cartesian_prod
 from itertools import product
+
+
 def paddlecartesian_prod(*x):
     z = list(product(*x))
     z = paddle.to_tensor(z)
     return z.squeeze(axis=-1)
+
 
 def discretize_box(box, subcell_size):
     xbins = paddle.arange(0, box[0, 0] + subcell_size, subcell_size)

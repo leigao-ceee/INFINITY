@@ -13,7 +13,7 @@ class System:
         self.vel = paddle.zeros([nreplicas, natoms, 3])
         self.forces = paddle.zeros([nreplicas, natoms, 3])
 
-#         self.to_(device)
+        #         self.to_(device)
         self.precision_(precision)
 
     @property
@@ -24,11 +24,11 @@ class System:
     def nreplicas(self):
         return self.pos.shape[0]
 
-#     def to_(self, device):
-#         self.forces = self.forces 
-#         self.box = self.box 
-#         self.pos = self.pos 
-#         self.vel = self.vel 
+    #     def to_(self, device):
+    #         self.forces = self.forces
+    #         self.box = self.box
+    #         self.pos = self.pos
+    #         self.vel = self.vel
 
     def precision_(self, precision):
         self.forces = self.forces.astype(precision)
@@ -46,8 +46,7 @@ class System:
         if self.nreplicas > 1 and atom_pos.shape[0] != self.nreplicas:
             atom_pos = np.repeat(atom_pos[0][None, :], self.nreplicas, axis=0)
 
-        self.pos[:] = paddle.to_tensor(
-            atom_pos, dtype=self.pos.dtype)
+        self.pos[:] = paddle.to_tensor(atom_pos, dtype=self.pos.dtype)
 
     def set_velocities(self, vel):
         if vel.shape != [self.nreplicas, self.natoms, 3]:
@@ -69,14 +68,13 @@ class System:
             box = np.repeat(box[0][None, :], self.nreplicas, axis=0)
 
         for r in range(box.shape[0]):
-#             self.box[r][paddle.eye(3).astype(paddle.bool)] = paddle.to_tensor(
-#                 box[r], dtype=self.box.dtype)
-            self.box[r] = paddle.to_tensor(
-                box[r], dtype=self.box.dtype) * paddle.eye(3).astype(paddle.bool)
-            
+            #             self.box[r][paddle.eye(3).astype(paddle.bool)] = paddle.to_tensor(
+            #                 box[r], dtype=self.box.dtype)
+            self.box[r] = paddle.to_tensor(box[r], dtype=self.box.dtype) * paddle.eye(
+                3
+            ).astype(paddle.bool)
 
     def set_forces(self, forces):
         if forces.shape != [self.nreplicas, self.natoms, 3]:
             raise RuntimeError("Forces shape must be (nreplicas, natoms, 3)")
-        self.forces[:] = paddle.to_tensor(
-            forces, dtype=self.forces.dtype)
+        self.forces[:] = paddle.to_tensor(forces, dtype=self.forces.dtype)

@@ -5,7 +5,11 @@ import numpy as np
 
 class Parameters:
     def __init__(
-        self, ff, mol, terms=None, precision=paddle.float32,
+        self,
+        ff,
+        mol,
+        terms=None,
+        precision=paddle.float32,
     ):
         self.A = None
         self.B = None
@@ -29,34 +33,35 @@ class Parameters:
         terms = [term.lower() for term in terms]
         self.build_parameters(ff, mol, terms)
         self.precision_(precision)
-#         self.to_(device=None) # 为了调试步幅小，临时用None默认值代替。
- 
-#     def to_(self, device=None):
-#         self.A = self.A 
-#         self.B = self.B 
-#         self.charges = self.charges 
-#         self.masses = self.masses 
-#         if self.bonds is not None:
-#             self.bonds = self.bonds 
-#             self.bond_params = self.bond_params 
-#         if self.angles is not None:
-#             self.angles = self.angles 
-#             self.angle_params = self.angle_params 
-#         if self.dihedrals is not None:
-#             self.dihedrals = self.dihedrals 
-#             for j in range(len(self.dihedral_params)):
-#                 termparams = self.dihedral_params[j]
-#                 termparams["idx"] = termparams["idx"] 
-#                 termparams["params"] = termparams["params"] 
-#         if self.idx14 is not None:
-#             self.idx14 = self.idx14 
-#             self.nonbonded_14_params = self.nonbonded_14_params 
-#         if self.impropers is not None:
-#             self.impropers = self.impropers 
-#             termparams = self.improper_params[0]
-#             termparams["idx"] = termparams["idx"] 
-#             termparams["params"] = termparams["params"] 
-#         self.device = device
+
+    #         self.to_(device=None) # 为了调试步幅小，临时用None默认值代替。
+
+    #     def to_(self, device=None):
+    #         self.A = self.A
+    #         self.B = self.B
+    #         self.charges = self.charges
+    #         self.masses = self.masses
+    #         if self.bonds is not None:
+    #             self.bonds = self.bonds
+    #             self.bond_params = self.bond_params
+    #         if self.angles is not None:
+    #             self.angles = self.angles
+    #             self.angle_params = self.angle_params
+    #         if self.dihedrals is not None:
+    #             self.dihedrals = self.dihedrals
+    #             for j in range(len(self.dihedral_params)):
+    #                 termparams = self.dihedral_params[j]
+    #                 termparams["idx"] = termparams["idx"]
+    #                 termparams["params"] = termparams["params"]
+    #         if self.idx14 is not None:
+    #             self.idx14 = self.idx14
+    #             self.nonbonded_14_params = self.nonbonded_14_params
+    #         if self.impropers is not None:
+    #             self.impropers = self.impropers
+    #             termparams = self.improper_params[0]
+    #             termparams["idx"] = termparams["idx"]
+    #             termparams["params"] = termparams["params"]
+    #         self.device = device
 
     def precision_(self, precision):
         self.A = self.A.astype(precision)
@@ -220,7 +225,7 @@ class Parameters:
             # Lorentz - Berthelot combination rule
             sig = 0.5 * (lj1_s14 + lj4_s14)
             eps = sqrt(lj1_e14 * lj4_e14)
-            s6 = sig ** 6
+            s6 = sig**6
             s12 = s6 * s6
             A = eps * 4 * s12
             B = eps * 4 * s6
@@ -232,7 +237,7 @@ def calculate_AB(sigma, epsilon):
     # Lorentz - Berthelot combination rule
     sigma_table = 0.5 * (sigma + sigma[:, None])
     eps_table = np.sqrt(epsilon * epsilon[:, None])
-    sigma_table_6 = sigma_table ** 6
+    sigma_table_6 = sigma_table**6
     sigma_table_12 = sigma_table_6 * sigma_table_6
     A = eps_table * 4 * sigma_table_12
     B = eps_table * 4 * sigma_table_6
