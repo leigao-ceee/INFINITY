@@ -24,7 +24,7 @@ we use several file format readers that are taken from Moleculekit which has a f
 具体命令见paddlepaddle.org.cn[网站安装指引](https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/guides/09_hardware_support/rocm_docs/paddle_install_cn.html)
 需要飞桨版本>=2.3
 ### 2 安装相关软件包
-2.1 通过`pip install -r requirements.txt` 和 `pip install -r requirements_tests.txt` 进行安装。
+2.1 通过`pip install -r requirements.txt` 和 `pip install -r requirements_tests.txt` 进行安装。大部分软件使用默认版本安装即可。
 ```
 pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
 pip install -r requirements_tests.txt -i https://mirror.baidu.com/pypi/simple
@@ -43,7 +43,7 @@ conda install openmm -c conda-forge
 ```
 
 ### 4 若没有条件进行conda安装，可以采取源码安装
-比如AIStudio平台，无法直接只用conda安装软件，可以采用源码安装方式：
+比如AIStudio平台，无法直接使用conda安装软件，可以采用源码安装方式：
 到github.com查找相应的软件包源码，git clone下载后， 编译安装。具体步骤略。
 
 ### 5 问题解析
@@ -82,8 +82,12 @@ conda install openmm -c conda-forge
 └── tutorial.ipynb
 ```
 ### 1、tutorial.ipynb 为例子文件  
+可以学习使用paddlemd
 ### 2、PaddleMD.ipynb为源码统一编辑文件，可以在notebook下编辑所有核心代码，编辑后只要运行一下就写入相应文件。
+tutorial.ipynb例子中就是调用PaddleMD.ipynb运行写入的代码。
 ### 3、2PaddleMD.ipynb为动态编辑和运行文件，可以边改代码，边看效果。
+主要用于修改和调试paddlemd代码使用。当前的paddlemd项目还未全部完成，欢迎大家调试、修改。
+
 注意调试完成后，需要在PaddleMD.ipynb里写入修改，以便代码一致。
 ### 4、3集成测试.ipynb 为集成测试文件
 首先使用`python setup.py develop`安装paddlemd开发模式。
@@ -91,7 +95,9 @@ conda install openmm -c conda-forge
 然后就可以测试了。
 比如可以使用`python tests/test_paddlemd.py`进行集成测试，使用`./bin/paddlemd --conf tests/water/water_conf.yaml`测试水分子，使用`./bin/paddlemd --conf tests/prod_alanine_dipeptide_amber/conf.yaml`测试prod alanine dipeptide前丙氨酸二，使用`./bin/paddlemd --conf tests/trypsin/conf.yaml`测试Trypsin胰蛋白酶。
 
-目前这三个测试都可以正常运行不报错。速度大约是torchmd的十六分之一。还有较大提升空间。
+在3集成测试.ipynb文件中，上述命令已经放入notebook中，直接运行即可。
+
+目前这三个单项测试都可以正常运行不报错。速度大约是torchmd的十六分之一。还有较大提升空间。
 
 集成测试，可以测试一部分，可看到势能和力场等数值跟openmm的较接近。但是后面还是会报错，大约是训练求导那块还有问题。
 
@@ -102,11 +108,11 @@ conda install openmm -c conda-forge
 ### 2 例子tutorial.ipynb可以执行
 
 ### 3 水分子、prod alanine dipeptide前丙氨酸二和Trypsin胰蛋白酶等论文提到的三个测试可以运行通过
-其中前两者使用论文原作者的分子结构文件，Trypsin胰蛋白酶没有找到原作的，由https://github.com/karlyuan 提供（表示感谢）。原作Trypsin胰蛋白酶为3248个原子，我们的为6904个原子。
+其中前两者使用论文原作者的分子结构文件，Trypsin胰蛋白酶没有找到原作的，由https://github.com/karlyuan 提供，表示感谢。原作Trypsin胰蛋白酶为3248个原子，本项目测试的为6904个原子。
 ## 当前还存在的问题
 ### 1 集成测试无法完全通过。
 
-### 2 AI参数自动更新优化那块可能还有问题。
+### 2 AI自动求导优化那块可能还有问题。
 
 ### 3 运行速度大约是torchmd的十六分之一，还有很大提升空间。
 其中有几个算子需要飞桨官方开发出来。另外整个项目的计算（代码表达式）可能还有较大的改进空间。
@@ -118,7 +124,7 @@ issue报名地址：https://github.com/PaddlePaddle/Paddle/issues/41482
 torch代码学习：https://github.com/torchmd/torchmd
 
 ## 帮助和注释
-未来会在github提供
+未来会在github官方项目库提供issue解答。
 
 ## 引用Citation
 Please cite:
