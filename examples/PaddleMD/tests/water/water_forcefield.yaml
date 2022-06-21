@@ -1,0 +1,32 @@
+atomtypes: [OT, HT]
+
+bonds:
+  (OT, HT):
+    k0: 450.000
+    req: 0.9572
+  (HT, HT):
+    k0: 0.000
+    req: 1.5139
+
+angles:
+  (HT, OT, HT):
+    k0: 55.000
+    theta0: 104.520
+
+lj:
+  OT:
+    sigma: 3.150574226831496
+    epsilon: -0.1521
+  HT:
+    sigma: 0.40001352444501237
+    epsilon: -0.046
+
+electrostatics:
+  OT:
+    charge: -0.834
+  HT:
+    charge: 0.417
+
+masses:
+  OT: 15.9994
+  HT: 1.008

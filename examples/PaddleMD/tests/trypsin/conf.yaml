@@ -1,0 +1,30 @@
+coordinates: null
+cutoff: 7.3
+device: cuda
+external: null
+forcefield: tests/trypsin/structure.prmtop
+forceterms:
+- LJ
+- Bonds
+- Angles
+- Electrostatics
+- Repulsioncg
+langevin_gamma: 0.1
+langevin_temperature: 300
+log_dir: mytrypsin/
+output: output
+output_period: 100
+precision: single
+replicas: 1
+rfa: true
+save_period: 100
+seed: 1
+steps: 50000
+topology:
+  - tests/trypsin/structure.prmtop
+coordinates:
+  - tests/trypsin/structure.pdb
+temperature: 300
+timestep: 1
+minimize: NULL
+
