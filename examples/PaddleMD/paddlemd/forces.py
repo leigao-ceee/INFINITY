@@ -19,8 +19,13 @@ def paddlescatter(x, dim, index, src):  # 支持1D版本
     if len(index.shape) == 1:
         #         for i in index:
         #             x[i] += updates[i]
+        '''
         for i in range(len(index)):
             x[index[i]] += updates[i]
+        '''
+        axis = 0
+        #paddle.put_along_axis(x, index, updates, axis, 'add')
+        x.put_along_axis(index, updates, axis, 'add')
         return x
 
     i, j = index.shape
