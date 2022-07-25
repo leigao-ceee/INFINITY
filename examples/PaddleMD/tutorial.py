@@ -58,8 +58,8 @@ system.set_velocities(maxwell_boltzmann(parameters.masses, T=300, replicas=1))
 from paddlemd.forces import Forces
 bonded = ["bonds", "angles", "dihedrals", "impropers", "1-4"]
 # bonded = ["dihedrals"]
-# forces = Forces(parameters, cutoff=9, rfa=True, switch_dist=7.5)
-forces = Forces(parameters, cutoff=9, rfa=True, switch_dist=7.5, terms=bonded)
+forces = Forces(parameters, cutoff=9, rfa=True, switch_dist=7.5)
+#forces = Forces(parameters, cutoff=9, rfa=True, switch_dist=7.5, terms=bonded)
 # Evaluate current energy and forces. Forces are modified in-place
 Epot = forces.compute(system.pos, system.box, system.forces, returnDetails=True)
 
